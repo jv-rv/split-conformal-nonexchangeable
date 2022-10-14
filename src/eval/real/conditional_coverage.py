@@ -4,14 +4,16 @@ from argparse import ArgumentParser
 
 import numpy as np
 import pandas as pd
-from joblib import Parallel, delayed
+from joblib import delayed, Parallel
+from numpy.typing import NDArray
 from tqdm import tqdm
 
-from src.models import GradientBoostingQR, KNNQR, LinearQR, NeuralNetworkQR, RandomForestQR
+from src.models import ConformalizedQR
+from src.models.quantile_regressors import QuantileRegressor
 from src.utils import eval
 from src.utils.data import get_data
 from src.utils.general import get_dir
-from src.utils.model import conformalized_quantile_regression, get_model
+from src.utils.model import get_model
 
 parser = ArgumentParser()
 
@@ -31,36 +33,21 @@ args = parser.parse_args()
 
 
 def run(
-    X_train: pd.DataFrame,
-    X_cal: pd.DataFrame,
-    X_test: pd.DataFrame,
-    y_sub: pd.DataFrame,
-    Model: GradientBoostingQR | KNNQR | LinearQR | NeuralNetworkQR | RandomForestQR,
-    dataset: str,
+    X_train: NDArray,
+    y_train: NDArray,
+    X_cal: NDArray,
+    y_cal: NDArray,
+    X_test: NDArray,
+    y_test: NDArray,
+    Model: QuantileRegressor,
+    prediction_point: pd.Timestamp,
     alpha: float,
-    n_train: int,
-    n_cal: int,
-    n_test: int,
     **kwargs: int | float | str,
 ) -> dict[str, float]:
     """Run a single experiment."""
     del kwargs
-    train_index = X_train.index
-    cal_index = X_cal.index
-    test_index = X_test.index
 
-    X_sub = pd.concat([X_train, X_cal, X_test], axis=0)
-    y_sub = y_sub[X_sub.index]
-
-    assert (X_sub.index == y_sub.index).all()
-    assert X_sub.index.is_unique
-    assert X_sub.index.is_monotonic_increasing
-
-    assert len(train_index) == n_train
-    assert len(cal_index) <= n_cal
-    assert len(test_index) == n_test
-
-    if len(cal_index) == 0:
+    if len(y_cal) == 0:
         return {
             "empirical_coverage": np.nan,
             "average_interval_size": np.nan,
@@ -70,25 +57,20 @@ def run(
             "y_true": np.nan,
         }
 
-    y_pred_lower, y_pred_upper = conformalized_quantile_regression(
-        Model=Model,
-        alpha=alpha,
-        seed=0,
-        X=X_sub,
-        y=y_sub,
-        train_index=train_index,
-        cal_index=cal_index,
-        test_index=test_index,
-    )
-    y_test = y_sub[test_index]
+    # Generate prediction intervals
+    cqr = ConformalizedQR(Model, alpha, seed=0)
+    cqr.fit(X_train, y_train)
+    cqr.calibrate(X_cal, y_cal)
+    y_pred_lower, y_pred_upper = cqr.predict(X_test)
 
+    # Evaluate
     empirical_coverage = eval.empirical_coverage(y_test, y_pred_lower, y_pred_upper)
     average_interval_size = eval.average_interval_size(y_pred_lower, y_pred_upper)
 
     return {
         "empirical_coverage": empirical_coverage,
         "average_interval_size": average_interval_size,
-        "prediction_point": test_index.item(),
+        "prediction_point": prediction_point,
         "y_pred_lower": y_pred_lower.item(),
         "y_pred_upper": y_pred_upper.item(),
         "y_true": y_test.item(),
@@ -110,8 +92,11 @@ def main(
     # Load dataset
     data = get_data(target=dataset, target_gap=1, maxlags=lags, year=year)
     index = data.index
+
+    # Split data in features and target
     X = data.drop("target", axis=1)
     y = data["target"]
+    index = data.index
 
     # Set event based on previous year data and retrieve test points of interest
     X_prev = get_data(
@@ -137,13 +122,18 @@ def main(
 
     res = Parallel(n_jobs=n_jobs)(
         delayed(run)(
-            X_train=X.loc[:t].iloc[-(n_train + n_cal + n_test) : -(n_cal + n_test)],
+            X_train=X.loc[:t].iloc[-(n_train + n_cal + n_test) : -(n_cal + n_test)].to_numpy(),
+            y_train=y.loc[:t].iloc[-(n_train + n_cal + n_test) : -(n_cal + n_test)].to_numpy(),
             X_cal=X.loc[:t].iloc[-(n_cal + n_test) : -n_test][
                 X_event[:t].iloc[-(n_cal + n_test) : -n_test]
-            ],
-            X_test=X.loc[[t]],
-            y_sub=y.loc[:t].iloc[-(n_train + n_cal + n_test):],
+            ].to_numpy(),
+            y_cal=y.loc[:t].iloc[-(n_cal + n_test) : -n_test][
+                X_event[:t].iloc[-(n_cal + n_test) : -n_test]
+            ].to_numpy(),
+            X_test=X.loc[[t]].to_numpy(),
+            y_test=y.loc[[t]].to_numpy(),
             Model=Model,
+            prediction_point=t,
             **vars(args),
         ) for t in tqdm(event_index) if len(y[:t]) >= n_train + n_cal + n_test
     )

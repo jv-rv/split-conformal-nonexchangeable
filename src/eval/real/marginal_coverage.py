@@ -3,14 +3,15 @@
 from argparse import ArgumentParser
 
 import pandas as pd
-from joblib import Parallel, delayed
-from tqdm import tqdm
+from joblib import delayed, Parallel
+from numpy.typing import NDArray
 
-from src.models import GradientBoostingQR, KNNQR, LinearQR, NeuralNetworkQR, RandomForestQR
+from src.models import ConformalizedQR
+from src.models.quantile_regressors import QuantileRegressor
 from src.utils import eval
-from src.utils.data import get_data
+from src.utils.data import get_data, SequentialSplit
 from src.utils.general import get_dir
-from src.utils.model import conformalized_quantile_regression, get_model
+from src.utils.model import get_model
 
 parser = ArgumentParser()
 
@@ -29,46 +30,38 @@ args = parser.parse_args()
 
 
 def run(
-    X_sub: pd.DataFrame,
-    y_sub: pd.DataFrame,
-    index_sub: pd.Index,
-    Model: GradientBoostingQR | KNNQR | LinearQR | NeuralNetworkQR | RandomForestQR,
-    dataset: str,
+    Model: QuantileRegressor,
+    X_train: NDArray,
+    y_train: NDArray,
+    X_cal: NDArray,
+    y_cal: NDArray,
+    X_test: NDArray,
+    y_test: NDArray,
+    prediction_point: pd.Timestamp,
     alpha: float,
-    n_train: int,
-    n_cal: int,
-    n_test: int,
     **kwargs: int | float | str,
 ) -> dict[str, float]:
     """Run a single experiment."""
-    del kwargs
-    train_index = index_sub[:n_train]
-    cal_index = index_sub[n_train : n_train + n_cal]
-    test_index = index_sub[n_train + n_cal : n_train + n_cal + n_test]
 
-    y_pred_lower, y_pred_upper = conformalized_quantile_regression(
-        Model=Model,
-        alpha=alpha,
-        seed=0,
-        X=X_sub,
-        y=y_sub,
-        train_index=train_index,
-        cal_index=cal_index,
-        test_index=test_index,
-    )
-    y_test = y_sub[test_index]
+    # Generate prediction intervals
+    cqr = ConformalizedQR(Model, alpha, seed=0)
+    cqr.fit(X_train, y_train)
+    cqr.calibrate(X_cal, y_cal)
+    y_pred_lower, y_pred_upper = cqr.predict(X_test)
 
+    # Evaluate
     empirical_coverage = eval.empirical_coverage(y_test, y_pred_lower, y_pred_upper)
     average_interval_size = eval.average_interval_size(y_pred_lower, y_pred_upper)
 
     return {
         "empirical_coverage": empirical_coverage,
         "average_interval_size": average_interval_size,
-        "prediction_point": test_index.item(),
+        "prediction_point": prediction_point,
         "y_pred_lower": y_pred_lower.item(),
         "y_pred_upper": y_pred_upper.item(),
         "y_true": y_test.item(),
     }
+
 
 def main(
     dataset: str,
@@ -84,23 +77,29 @@ def main(
     # Load dataset
     data = get_data(target=dataset, target_gap=1, maxlags=lags, year=year)
     index = data.index
-    X = data.drop("target", axis=1)
-    y = data["target"]
 
-    # Set maximum number of test points available for evaluation
-    max_test_points = len(data) - n_train - n_cal
+    # Split data in features and target
+    X = data.drop("target", axis=1).to_numpy()
+    y = data["target"].to_numpy()
 
     # Retrieve quantile regression model
     Model = get_model(quantile_model)
 
+    # Set sequential split sizes
+    sizes = (n_train, n_cal, n_test)
+
     res = Parallel(n_jobs=n_jobs)(
         delayed(run)(
-            X_sub=X.iloc[i: i + n_train + n_cal + n_test],
-            y_sub=y.iloc[i: i + n_train + n_cal + n_test],
-            index_sub=index[i: i + n_train + n_cal + n_test],
             Model=Model,
+            X_train=X[train_index],
+            y_train=y[train_index],
+            X_cal=X[cal_index],
+            y_cal=y[cal_index],
+            X_test=X[test_index],
+            y_test=y[test_index],
+            prediction_point=index[test_index].item(),
             **vars(args),
-        ) for i in tqdm(range(max_test_points))
+        ) for train_index, cal_index, test_index in SequentialSplit(sizes).split(X)
     )
 
     df = pd.DataFrame(res)

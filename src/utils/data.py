@@ -1,11 +1,41 @@
 """Utilities to deal with data."""
 
 import warnings
+from collections.abc import Iterator
 
 import numpy as np
 import pandas as pd
+from numpy.typing import ArrayLike
+from tqdm import trange
 
 from src.utils.stochastic_processes import AR1, CycleRandomWalk, Renewal, TwoStateMarkovChain
+
+
+class SequentialSplit:
+    """Sequential data splitter."""
+
+    def __init__(
+        self,
+        sizes: tuple[int, ...],
+        show_progress: bool = True,
+
+    ) -> None:
+        """Initialize with tuple representing the size of each set in a split."""
+        self.sizes = sizes
+        self.show_progress = show_progress
+
+    def split(
+        self,
+        X: ArrayLike,
+    ) -> Iterator[list[list[int]]]:
+        """Iterate sequentially over possible splits given set sizes."""
+        indices = np.arange(X.shape[0]).tolist()
+        n_splits = len(indices) - sum(self.sizes) + 1
+        for t in trange(n_splits) if self.show_progress else range(n_splits):
+            yield [
+                indices[t + sum(self.sizes[:j]) : t + sum(self.sizes[:j+1])]
+                for j in range(len(self.sizes))
+            ]
 
 
 def get_data(

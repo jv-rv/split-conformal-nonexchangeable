@@ -3,15 +3,16 @@
 from argparse import ArgumentParser
 
 import pandas as pd
-from joblib import Parallel, delayed
+from joblib import delayed, Parallel
 from tqdm import tqdm
 
-from src.models import GradientBoostingQR, KNNQR, LinearQR, NeuralNetworkQR, RandomForestQR
+from src.models import ConformalizedQR
+from src.models.quantile_regressors import QuantileRegressor
 from src.utils import eval
-from src.utils.data import get_synthetic
+from src.utils.data import get_synthetic, SequentialSplit
 from src.utils.dependence import minimize_eta_test_set
 from src.utils.general import get_dir
-from src.utils.model import conformalized_quantile_regression, get_model
+from src.utils.model import get_model
 
 parser = ArgumentParser()
 
@@ -80,7 +81,7 @@ def get_stochastic_process_params(
 def run(
     i: int,
     params: dict[str, int | float],
-    Model: GradientBoostingQR | KNNQR | LinearQR | NeuralNetworkQR | RandomForestQR,
+    Model: QuantileRegressor,
     stochastic_process: str,
     quantile_model: str,
     alpha: float,
@@ -95,33 +96,36 @@ def run(
 ) -> dict[str, float]:
     """Generate random sequence with `i` as seed and run a single experiment."""
     df = get_synthetic(stochastic_process, N=n_train+n_cal+n_test, lags=lags, seed=i, **params)
-    index = df.index
-    if not cal_before_train:
-        train_index = index[:n_train]
-        cal_index = index[n_train : n_train + n_cal]
-    elif cal_before_train:
-        train_index = index[n_cal : n_train + n_cal]
-        cal_index = index[:n_cal]
-    test_index = index[n_train + n_cal : n_train + n_cal + n_test]
-    X = df.drop("target", axis=1)
-    y = df["target"]
-    y_pred_lower, y_pred_upper = conformalized_quantile_regression(
-        Model=Model,
-        alpha=alpha,
-        seed=0,
-        X=X,
-        y=y,
-        train_index=train_index,
-        cal_index=cal_index,
-        test_index=test_index,
-    )
-    y_test = y[test_index]
 
+    if not cal_before_train:
+        train_index, cal_index, test_index = tuple(
+            *SequentialSplit((n_train, n_cal, n_test), show_progress=False).split(df)
+        )
+    else:
+        cal_index, train_index, test_index = tuple(
+            *SequentialSplit((n_cal, n_train, n_test), show_progress=False).split(df)
+        )
+
+    # Split data
+    X = df.drop("target", axis=1).to_numpy()
+    y = df["target"].to_numpy()
+
+    X_train, y_train = X[train_index], y[train_index]
+    X_cal, y_cal = X[cal_index], y[cal_index]
+    X_test, y_test = X[test_index], y[test_index]
+
+    # Generate prediction intervals
+    cqr = ConformalizedQR(Model, alpha, seed=0)
+    cqr.fit(X_train, y_train)
+    cqr.calibrate(X_cal, y_cal)
+    y_pred_lower, y_pred_upper = cqr.predict(X_test)
+
+    # Evaluate
     empirical_coverage = eval.empirical_coverage(y_test, y_pred_lower, y_pred_upper)
     average_interval_size = eval.average_interval_size(y_pred_lower, y_pred_upper)
 
-    del df, index, train_index, cal_index, test_index, X, y
-    del y_pred_lower, y_pred_upper, y_test
+    del df, train_index, cal_index, test_index, cqr
+    del X, y, X_train, y_train, X_cal, y_cal, X_test, y_test, y_pred_lower, y_pred_upper
 
     if n_test == 1:
         return {

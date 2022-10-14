@@ -79,7 +79,7 @@ def main(
 
     plt.rcParams.update({"font.size": 8})
 
-    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(10, 1.9))
+    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(10, 2))
 
     inpath = "eval/results/synthetic/marginal_coverage"
     outpath = get_dir("eval/plots")

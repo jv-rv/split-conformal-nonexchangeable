@@ -70,6 +70,7 @@ def get_synthetic(
 ) -> pd.DataFrame:
     """Generate dataset from stochastic process."""
     # Initialize stochastic process class
+    sp: AR1 | CycleRandomWalk | Renewal | TwoStateMarkovChain
     if stochastic_process == "ar1":
         sp = AR1(**kwargs)
     elif stochastic_process == "cycle_random_walk":

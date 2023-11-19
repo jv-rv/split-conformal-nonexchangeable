@@ -1,6 +1,7 @@
 """Marginal coverage evaluation on real data."""
 
 from argparse import ArgumentParser
+from typing import Type
 
 import pandas as pd
 from joblib import delayed, Parallel
@@ -15,7 +16,7 @@ from src.utils.model import get_model
 
 
 def run(
-    Model: QuantileRegressor,
+    Model: Type[QuantileRegressor],
     X_train: NDArray,
     y_train: NDArray,
     X_cal: NDArray,

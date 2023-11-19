@@ -1,6 +1,7 @@
 """Marginal coverage and empirical coverage evaluation."""
 
 from argparse import ArgumentParser
+from typing import Type
 
 import pandas as pd
 from joblib import delayed, Parallel
@@ -46,7 +47,7 @@ def get_stochastic_process_params(
 def run(
     i: int,
     params: dict[str, int | float],
-    Model: QuantileRegressor,
+    Model: Type[QuantileRegressor],
     stochastic_process: str,
     quantile_model: str,
     alpha: float,
@@ -64,11 +65,11 @@ def run(
 
     if not cal_before_train:
         train_index, cal_index, test_index = tuple(
-            *SequentialSplit((n_train, n_cal, n_test), show_progress=False).split(df)
+            *SequentialSplit((n_train, n_cal, n_test), show_progress=False).split(df),
         )
     else:
         cal_index, train_index, test_index = tuple(
-            *SequentialSplit((n_cal, n_train, n_test), show_progress=False).split(df)
+            *SequentialSplit((n_cal, n_train, n_test), show_progress=False).split(df),
         )
 
     # Split data

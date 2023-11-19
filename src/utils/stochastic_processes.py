@@ -220,6 +220,8 @@ class Renewal:
         """
         assert n > 1
         self.n = n
+        self.lim_f: int
+        self.lim_x_zero: int
         match n:
             case 2:
                 self.lim_f = 1413
@@ -266,14 +268,11 @@ class Renewal:
             uniform_sample[0],
             self.cdf_x_zero(np.arange(self.lim_x_zero)),
         )
-
         x = np.digitize(
             uniform_sample[1:],
             self.cdf_f(np.arange(self.lim_f)),
         )
-
         x = np.append(x_zero, x)
-
         x_cumsum = x.cumsum()
 
         return np.array([int(np.isin(n, x_cumsum[:n]).item()) for n in range(N)])
@@ -288,7 +287,7 @@ class _Renewal:
     Base distribution chosen as F(i) = 1 - 6 / ((i+1) * (i+2) * (i+3)).
 
     Kept for compatibility and benchmarks. This class is faster than Renewal,
-    but less general: it works only for k=3.
+        but less general: it works only for k=3.
     """
 
     def _inverse_cdf_x_zero(self, j: NDArray) -> NDArray:
@@ -297,7 +296,7 @@ class _Renewal:
         #   from sympy import symbols, Eq, solve, simplify, Sum
         #   i, j = symbols("i j")
         #   cdf = Eq(j, (i**2 + 5*i + 4) / (i**2 + 5*i + 6))
-        #   simplify(solve(cdf, i)[1])
+        #   simplify(solve(cdf, i)[0])
         return np.ceil((-5*j - np.sqrt((j - 9) * (j - 1)) + 5) / (2 * (j - 1)))
 
     def _inverse_cdf_f(self, j: NDArray) -> NDArray:

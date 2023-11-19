@@ -1,6 +1,7 @@
 """Conditional coverage evaluation on real data."""
 
 from argparse import ArgumentParser
+from typing import Type
 
 import numpy as np
 import pandas as pd
@@ -23,7 +24,7 @@ def run(
     y_cal: NDArray,
     X_test: NDArray,
     y_test: NDArray,
-    Model: QuantileRegressor,
+    Model: Type[QuantileRegressor],
     prediction_point: pd.Timestamp,
     alpha: float,
     **kwargs: int | float | str,

@@ -14,10 +14,6 @@ from tqdm import tqdm
 
 from src.utils.general import get_dir
 
-parser = ArgumentParser()
-parser.add_argument("--delete_zip_files", action="store_true")
-args = parser.parse_args()
-
 
 def main(delete_zip_files: bool) -> None:
     # For simplicity, we will use data until the last full year
@@ -96,4 +92,8 @@ def main(delete_zip_files: bool) -> None:
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--delete_zip_files", action="store_true")
+    args = parser.parse_args()
+
     main(**vars(args))

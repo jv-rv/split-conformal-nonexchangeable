@@ -6,17 +6,6 @@ import pandas as pd
 
 from src.utils.general import get_dir
 
-parser = ArgumentParser()
-parser.add_argument(
-    "--assets",
-    nargs="*",
-    default=[],
-    help="Assets.",
-)
-parser.add_argument("--maxlags", type=int, default=10)
-parser.add_argument("--year", type=int, default=2021)
-args = parser.parse_args()
-
 
 def main(assets: list[str], maxlags: int, year: int) -> None:
     dfs = []
@@ -75,4 +64,15 @@ def main(assets: list[str], maxlags: int, year: int) -> None:
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--assets",
+        nargs="*",
+        default=[],
+        help="Assets.",
+    )
+    parser.add_argument("--maxlags", type=int, default=10)
+    parser.add_argument("--year", type=int, default=2021)
+    args = parser.parse_args()
+
     main(**vars(args))

@@ -7,6 +7,6 @@ for dataset in $DATASETS
 do
   for year in $YEARS
   do
-    python src/data/process.py --assets "$dataset" --year "$year"
+    python src/data/process_forex.py --assets "$dataset" --year "$year"
   done
 done

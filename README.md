@@ -6,7 +6,7 @@ This repository contains the code for the paper "Split Conformal Prediction for 
 
 - All scripts should be run from the git repository root directory (`split-conformal-nonexchangeable/`).
 - Packages listed in `requirements.txt` should be installed via your python package manager of choice.
-- Python 3.10+ is required.
+- Python 3.11 is required.
 
 ## Structure
 

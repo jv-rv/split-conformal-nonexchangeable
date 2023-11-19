@@ -1,6 +1,6 @@
 """Quantile regression models."""
 
-from .conformalized_quantile_regressor import ConformalizedQR
+from .conformal_quantile_regressor import ConformalQR
 from .quantile_regressors import (
     GradientBoostingQR,
     KNNQR,
@@ -10,7 +10,7 @@ from .quantile_regressors import (
 )
 
 __all__ = [
-    "ConformalizedQR",
+    "ConformalQR",
     "GradientBoostingQR",
     "KNNQR",
     "LinearQR",

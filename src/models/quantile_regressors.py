@@ -1,6 +1,7 @@
 """Quantile regression models."""
 
 from abc import ABC, abstractmethod
+from typing import Self
 
 import numpy as np
 import torch
@@ -29,7 +30,7 @@ class QuantileRegressor(ABC):
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> "QuantileRegressor":
+    ) -> Self:
         """Train model to estimate quantiles."""
 
     @abstractmethod
@@ -65,7 +66,7 @@ class GradientBoostingQR(QuantileRegressor):
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> "QuantileRegressor":
+    ) -> Self:
         """Train lower and upper quantile models."""
         self.qr_lower = LGBMRegressor(
             alpha=(self.alpha / 2),
@@ -108,7 +109,7 @@ class KNNQR(QuantileRegressor):
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> "QuantileRegressor":
+    ) -> Self:
         """Train quantile regression based on k-nearest neighbors."""
         self.qr = KNeighborsQuantileRegressor(
             q=(self.alpha / 2, 1 - self.alpha / 2),
@@ -137,7 +138,7 @@ class LinearQR(QuantileRegressor):
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> "QuantileRegressor":
+    ) -> Self:
         """Train lower and upper quantile models."""
         self.qr_lower = linear_model.QuantileRegressor(
             quantile=(self.alpha / 2),
@@ -172,7 +173,7 @@ class RandomForestQR(QuantileRegressor):
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> "QuantileRegressor":
+    ) -> Self:
         """Train Quantile Regression Forest (Meinshausen, 2006)."""
         self.qr = RandomForestQuantileRegressor(
             q=[self.alpha / 2, 1 - self.alpha / 2],
@@ -241,7 +242,7 @@ class NeuralNetworkQR(QuantileRegressor):
         self,
         X: ArrayLike | torch.Tensor,
         y: ArrayLike | torch.Tensor,
-    ) -> "QuantileRegressor":
+    ) -> Self:
         """Train single model for upper and lower quantile prediction."""
         self.model = self.NeuralNetwork(
             input_size=X.shape[1],

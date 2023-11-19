@@ -1,4 +1,6 @@
-"""Conformalized Quantile Regressor."""
+"""Conformal Quantile Regressor."""
+
+from typing import Self, Type
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -6,12 +8,12 @@ from numpy.typing import ArrayLike, NDArray
 from src.models.quantile_regressors import QuantileRegressor
 
 
-class ConformalizedQR(QuantileRegressor):
-    """Conformalized Quantile Regressor."""
+class ConformalQR(QuantileRegressor):
+    """Conformal Quantile Regressor."""
 
     def __init__(
         self,
-        Model: QuantileRegressor,
+        Model: Type[QuantileRegressor],
         alpha: float,
         seed: int | None = None,
     ) -> None:
@@ -23,7 +25,7 @@ class ConformalizedQR(QuantileRegressor):
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> "ConformalizedQR":
+    ) -> Self:
         """Fit base model."""
         self.model = self.Model(alpha=self.alpha, seed=self.seed).fit(X, y)
         return self
@@ -32,7 +34,7 @@ class ConformalizedQR(QuantileRegressor):
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> "ConformalizedQR":
+    ) -> Self:
         """Calibrate via plug-in prediction interval error (Romano, Patterson, and Candès 2019)."""
         y_pred_lower, y_pred_upper = self.model.predict(X)
         scores = np.maximum(y_pred_lower - y, y - y_pred_upper)

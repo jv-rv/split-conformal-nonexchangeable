@@ -6,7 +6,7 @@ import pandas as pd
 from joblib import delayed, Parallel
 from numpy.typing import NDArray
 
-from src.models import ConformalizedQR
+from src.models import ConformalQR
 from src.models.quantile_regressors import QuantileRegressor
 from src.utils import eval
 from src.utils.data import get_data, SequentialSplit
@@ -44,7 +44,7 @@ def run(
     """Run a single experiment."""
 
     # Generate prediction intervals
-    cqr = ConformalizedQR(Model, alpha, seed=0)
+    cqr = ConformalQR(Model, alpha, seed=0)
     cqr.fit(X_train, y_train)
     cqr.calibrate(X_cal, y_cal)
     y_pred_lower, y_pred_upper = cqr.predict(X_test)

@@ -13,21 +13,6 @@ from src.utils.data import get_data, SequentialSplit
 from src.utils.general import get_dir
 from src.utils.model import get_model
 
-parser = ArgumentParser()
-
-# Set common parameters
-parser.add_argument("--dataset", type=str)
-parser.add_argument("--year", type=int, default=2021)
-parser.add_argument("--quantile_model", type=str, default="boosting")
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--n_train", type=int, default=1000)
-parser.add_argument("--n_cal", type=int, default=500)
-parser.add_argument("--n_test", type=int, default=1)
-parser.add_argument("--lags", type=int, default=10)
-parser.add_argument("--n_jobs", type=int, default=-1)
-
-args = parser.parse_args()
-
 
 def run(
     Model: QuantileRegressor,
@@ -123,4 +108,16 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--dataset", type=str)
+    parser.add_argument("--year", type=int, default=2021)
+    parser.add_argument("--quantile_model", type=str, default="boosting")
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--n_train", type=int, default=1000)
+    parser.add_argument("--n_cal", type=int, default=500)
+    parser.add_argument("--n_test", type=int, default=1)
+    parser.add_argument("--lags", type=int, default=10)
+    parser.add_argument("--n_jobs", type=int, default=-1)
+    args = parser.parse_args()
+
     main(**vars(args))

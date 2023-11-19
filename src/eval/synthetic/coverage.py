@@ -14,41 +14,6 @@ from src.utils.dependence import minimize_eta_test_set
 from src.utils.general import get_dir
 from src.utils.model import get_model
 
-parser = ArgumentParser()
-
-# Set stochastic process as positional argument and initialize subparser
-subparsers = parser.add_subparsers(dest="stochastic_process")
-
-# Set parameters of each individual process depending on previous choice
-parser_ar1 = subparsers.add_parser("ar1")
-parser_ar1.add_argument("--phi", type=float)
-
-parser_crw = subparsers.add_parser("cycle_random_walk")
-parser_crw.add_argument("--prob_backward", "-b", type=float)
-parser_crw.add_argument("--prob_stay", "-s", type=float)
-parser_crw.add_argument("--prob_forward", "-f", type=float)
-parser_crw.add_argument("--vertices", "-v", type=int)
-
-parser_renewal = subparsers.add_parser("renewal")
-parser_renewal.add_argument("--n_value", type=int)
-
-parser_tsmc = subparsers.add_parser("two_state_markov_chain")
-parser_tsmc.add_argument("--prob_p", "-p", type=float)
-parser_tsmc.add_argument("--prob_q", "-q", type=float)
-
-# Set common parameters
-parser.add_argument("--quantile_model", type=str, default="boosting")
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--n_train", type=int, default=1000)
-parser.add_argument("--n_cal", type=int, default=1000)
-parser.add_argument("--n_test", type=int, default=1)
-parser.add_argument("--cal_before_train", action="store_true")
-parser.add_argument("--lags", type=int, default=10)
-parser.add_argument("--simulations", type=int, default=1000)
-parser.add_argument("--n_jobs", type=int, default=-1)
-
-args = parser.parse_args()
-
 
 def get_stochastic_process_params(
     stochastic_process: str,
@@ -227,4 +192,39 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+
+    # Set stochastic process as positional argument and initialize subparser
+    subparsers = parser.add_subparsers(dest="stochastic_process")
+
+    # Set parameters of each individual process depending on previous choice
+    parser_ar1 = subparsers.add_parser("ar1")
+    parser_ar1.add_argument("--phi", type=float)
+
+    parser_crw = subparsers.add_parser("cycle_random_walk")
+    parser_crw.add_argument("--prob_backward", "-b", type=float)
+    parser_crw.add_argument("--prob_stay", "-s", type=float)
+    parser_crw.add_argument("--prob_forward", "-f", type=float)
+    parser_crw.add_argument("--vertices", "-v", type=int)
+
+    parser_renewal = subparsers.add_parser("renewal")
+    parser_renewal.add_argument("--n_value", type=int)
+
+    parser_tsmc = subparsers.add_parser("two_state_markov_chain")
+    parser_tsmc.add_argument("--prob_p", "-p", type=float)
+    parser_tsmc.add_argument("--prob_q", "-q", type=float)
+
+    # Set common parameters
+    parser.add_argument("--quantile_model", type=str, default="boosting")
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--n_train", type=int, default=1000)
+    parser.add_argument("--n_cal", type=int, default=1000)
+    parser.add_argument("--n_test", type=int, default=1)
+    parser.add_argument("--cal_before_train", action="store_true")
+    parser.add_argument("--lags", type=int, default=10)
+    parser.add_argument("--simulations", type=int, default=1000)
+    parser.add_argument("--n_jobs", type=int, default=-1)
+
+    args = parser.parse_args()
+
     main(**vars(args))

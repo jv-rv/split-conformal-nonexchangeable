@@ -10,12 +10,6 @@ import seaborn as sns
 
 from src.utils.general import get_dir
 
-parser = ArgumentParser()
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--delta", type=float, default=0.01)
-parser.add_argument("--palette", type=str, default="flare_r")
-args = parser.parse_args()
-
 
 def main(
     alpha: float,
@@ -61,4 +55,10 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--delta", type=float, default=0.01)
+    parser.add_argument("--palette", type=str, default="flare_r")
+    args = parser.parse_args()
+
     main(**vars(args))

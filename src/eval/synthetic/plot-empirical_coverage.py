@@ -8,15 +8,6 @@ import pandas as pd
 
 from src.utils.general import get_dir
 
-parser = ArgumentParser()
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--n_train", type=int, default=1000)
-parser.add_argument("--n_cal", type=int, default=15000)
-parser.add_argument("--n_test", type=int, default=15000)
-parser.add_argument("--lags", type=int, default=10)
-parser.add_argument("--quantile_model", type=str, default="boosting")
-args = parser.parse_args()
-
 
 def main(
     alpha: float,
@@ -88,4 +79,13 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--n_train", type=int, default=1000)
+    parser.add_argument("--n_cal", type=int, default=15000)
+    parser.add_argument("--n_test", type=int, default=15000)
+    parser.add_argument("--lags", type=int, default=10)
+    parser.add_argument("--quantile_model", type=str, default="boosting")
+    args = parser.parse_args()
+
     main(**vars(args))

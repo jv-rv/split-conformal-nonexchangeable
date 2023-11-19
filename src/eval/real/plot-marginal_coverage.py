@@ -3,24 +3,9 @@
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-from numpy.typing import ArrayLike
 
 from src.utils.general import get_dir
-
-parser = ArgumentParser()
-
-parser.add_argument("--datasets", nargs="+", default=["eurusd", "bcousd", "spxusd"])
-parser.add_argument("--quantile_model", type=str, default="boosting")
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--n_train", type=int, default=1000)
-parser.add_argument("--n_cal", type=int, default=500)
-parser.add_argument("--n_test", type=int, default=1)
-parser.add_argument("--lags", type=int, default=10)
-parser.add_argument("--aggregation", type=str, default="day")
-
-args = parser.parse_args()
 
 
 def main(
@@ -99,4 +84,15 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--datasets", nargs="+", default=["eurusd", "bcousd", "spxusd"])
+    parser.add_argument("--quantile_model", type=str, default="boosting")
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--n_train", type=int, default=1000)
+    parser.add_argument("--n_cal", type=int, default=500)
+    parser.add_argument("--n_test", type=int, default=1)
+    parser.add_argument("--lags", type=int, default=10)
+    parser.add_argument("--aggregation", type=str, default="day")
+    args = parser.parse_args()
+
     main(**vars(args))

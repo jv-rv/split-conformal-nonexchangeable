@@ -8,21 +8,6 @@ import pandas as pd
 
 from src.utils.general import get_dir
 
-parser = ArgumentParser()
-
-# Set common parameters
-parser.add_argument("--datasets", nargs="+", default=["eurusd", "bcousd", "spxusd"])
-parser.add_argument("--year", type=int, default=2021)
-parser.add_argument("--quantile_model", type=str, default="boosting")
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--n_train", type=int, default=1000)
-parser.add_argument("--n_cal", nargs="+", default=[500, 1000, 5000])
-parser.add_argument("--n_test", type=int, default=1)
-parser.add_argument("--lags", type=int, default=10)
-parser.add_argument("--events", nargs="+", default=["uptrend", "downtrend", "highvol", "lowvol"])
-
-args = parser.parse_args()
-
 
 def main(
     datasets: list[str],
@@ -86,4 +71,16 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--datasets", nargs="+", default=["eurusd", "bcousd", "spxusd"])
+    parser.add_argument("--year", type=int, default=2021)
+    parser.add_argument("--quantile_model", type=str, default="boosting")
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--n_train", type=int, default=1000)
+    parser.add_argument("--n_cal", nargs="+", default=[500, 1000, 5000])
+    parser.add_argument("--n_test", type=int, default=1)
+    parser.add_argument("--lags", type=int, default=10)
+    parser.add_argument("--events", nargs="+", default=["uptrend", "downtrend", "highvol", "lowvol"])
+    args = parser.parse_args()
+
     main(**vars(args))

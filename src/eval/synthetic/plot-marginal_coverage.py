@@ -9,16 +9,6 @@ from matplotlib.ticker import FormatStrFormatter
 
 from src.utils.general import get_dir
 
-parser = ArgumentParser()
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--models", nargs="+", default=["boosting", "neural_network", "random_forest"])
-parser.add_argument("--stochastic_process", type=str, default="two_state_markov_chain")
-parser.add_argument("--n_train", type=int, default=1000)
-parser.add_argument("--n_cal", type=int, default=500)
-parser.add_argument("--n_test", type=int, default=1)
-parser.add_argument("--lags", type=int, default=10)
-args = parser.parse_args()
-
 
 def get_ylim(
     alpha: float,
@@ -269,4 +259,14 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--models", nargs="+", default=["boosting", "neural_network", "random_forest"])
+    parser.add_argument("--stochastic_process", type=str, default="two_state_markov_chain")
+    parser.add_argument("--n_train", type=int, default=1000)
+    parser.add_argument("--n_cal", type=int, default=500)
+    parser.add_argument("--n_test", type=int, default=1)
+    parser.add_argument("--lags", type=int, default=10)
+    args = parser.parse_args()
+
     main(**vars(args))

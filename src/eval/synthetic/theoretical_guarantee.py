@@ -10,13 +10,6 @@ from tqdm import tqdm
 from src.utils.dependence import minimize_eta_test_point
 from src.utils.general import get_dir
 
-parser = ArgumentParser()
-parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--delta", type=float)
-parser.add_argument("--pq", type=float)
-parser.add_argument("--n_jobs", type=int, default=1)
-args = parser.parse_args()
-
 
 def run(
     n_cal: int,
@@ -46,6 +39,7 @@ def run(
         "delta": delta,
     }
 
+
 def main(
     alpha: float,
     delta: float,
@@ -66,4 +60,11 @@ def main(
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--alpha", type=float, default=0.1)
+    parser.add_argument("--delta", type=float)
+    parser.add_argument("--pq", type=float)
+    parser.add_argument("--n_jobs", type=int, default=1)
+    args = parser.parse_args()
+
     main(**vars(args))

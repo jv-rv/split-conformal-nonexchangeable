@@ -1,6 +1,6 @@
 # Split Conformal Prediction and Non-Exchangeable Data
 
-This repository contains the code for the paper "Split Conformal Prediction and Non-Exchangeable Data" (Roberto I. Oliveira, Paulo Orenstein, Thiago Ramos, João Vitor Romano).
+This repository contains the code for the paper [Split Conformal Prediction and Non-Exchangeable Data](https://jmlr.org/papers/v25/23-1553.html).
 
 ## Setup
 
